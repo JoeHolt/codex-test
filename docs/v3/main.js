@@ -171,10 +171,18 @@ class Board {
     return x === ex && y === ey && !this.isColor(x, y, color);
   }
 
-  movePiece(fromX, fromY, toX, toY) {
+  movePiece(fromX, fromY, toX, toY, effect = null) {
     const piece = this.piece(fromX, fromY);
     if (!piece) return false;
-    const moves = piece.possibleMoves(this, fromX, fromY);
+    let moves = piece.possibleMoves(this, fromX, fromY);
+    if (effect === 'Super Knight' && piece.type === 'n') {
+      [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(d => {
+        const nx = fromX + d[0], ny = fromY + d[1];
+        if (this.inBounds(nx, ny) && !this.isColor(nx, ny, piece.color)) {
+          moves.push([nx, ny]);
+        }
+      });
+    }
     const valid = moves.some(([mx, my]) => mx === toX && my === toY);
     if (!valid) return false;
     // handle en passant
@@ -203,6 +211,11 @@ class Board {
     // move
     this.grid[toX][toY] = piece;
     this.grid[fromX][fromY] = null;
+    if (effect === 'Free Pawn') {
+      if (this.grid[fromX][fromY] === null) {
+        this.grid[fromX][fromY] = new Pawn(piece.color);
+      }
+    }
     // pawn promotion
     if (piece.type === 'p' && (toX === 0 || toX === 7)) {
       this.grid[toX][toY] = new Queen(piece.color); // auto promote to queen
@@ -268,11 +281,24 @@ class Game {
     return symbols[piece.type][piece.color];
   }
 
+  getMoves(piece, x, y) {
+    let moves = piece.possibleMoves(this.board, x, y);
+    if (this.currentEffect === 'Super Knight' && piece.type === 'n') {
+      [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(d => {
+        const nx = x + d[0], ny = y + d[1];
+        if (this.board.inBounds(nx, ny) && !this.board.isColor(nx, ny, piece.color)) {
+          moves.push([nx, ny]);
+        }
+      });
+    }
+    return moves;
+  }
+
   clickCell(e) {
     const x = parseInt(e.currentTarget.dataset.x);
     const y = parseInt(e.currentTarget.dataset.y);
     if (this.selected) {
-      if (this.board.movePiece(this.selected[0], this.selected[1], x, y)) {
+      if (this.board.movePiece(this.selected[0], this.selected[1], x, y, this.currentEffect)) {
         this.turn = this.turn === 'w' ? 'b' : 'w';
         this.nextEffect();
       }
@@ -282,7 +308,7 @@ class Game {
       const piece = this.board.piece(x, y);
       if (piece && piece.color === this.turn) {
         this.selected = [x, y];
-        this.highlightMoves(piece.possibleMoves(this.board, x, y));
+        this.highlightMoves(this.getMoves(piece, x, y));
       }
     }
   }
