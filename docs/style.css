@@ -10,36 +10,6 @@ body {
   margin: 0;
 }
 
-.game-container {
-  display: flex;
-  align-items: flex-start;
-}
-
-.mod-panel {
-  margin-left: 24px;
-  padding: 12px;
-  border: 1px solid #d1d1d6;
-  border-radius: 8px;
-  background-color: #fff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-}
-
-.mod-panel h2 {
-  margin-top: 0;
-  font-size: 18px;
-}
-
-.mod-panel ul {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-.mod-panel li {
-  padding: 4px 0;
-  cursor: pointer;
-}
-
 h1 {
   margin-bottom: 24px;
   font-weight: 600;
