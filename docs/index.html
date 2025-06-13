@@ -11,6 +11,16 @@
 <body>
   <h1>Basic Chess</h1>
   <div id="board" class="board"></div>
+  <div id="captures" class="captures">
+    <div class="capture-group">
+      <div class="capture-label">White Score: <span id="white-score">0</span></div>
+      <div id="white-captured" class="captured-pieces"></div>
+    </div>
+    <div class="capture-group">
+      <div class="capture-label">Black Score: <span id="black-score">0</span></div>
+      <div id="black-captured" class="captured-pieces"></div>
+    </div>
+  </div>
   <div id="status"></div>
   <script src="main.js"></script>
 </body>
