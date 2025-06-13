@@ -177,8 +177,11 @@ class Board {
     const moves = piece.possibleMoves(this, fromX, fromY);
     const valid = moves.some(([mx, my]) => mx === toX && my === toY);
     if (!valid) return false;
+
+    let captured = this.piece(toX, toY);
     // handle en passant
     if (piece.type === 'p' && this.enPassant && toX === this.enPassant[0] && toY === this.enPassant[1]) {
+      captured = this.piece(fromX, toY);
       this.grid[fromX][toY] = null; // capture pawn
     }
     // handle castling
@@ -216,7 +219,7 @@ class Board {
       if (fromY === 0) this.castling[piece.color].Q = false;
       if (fromY === 7) this.castling[piece.color].K = false;
     }
-    return true;
+    return captured;
   }
 }
 
@@ -225,6 +228,7 @@ class Game {
     this.board = new Board();
     this.turn = 'w';
     this.selected = null; // [x, y]
+    this.captured = { w: [], b: [] };
     this.render();
   }
 
@@ -246,6 +250,7 @@ class Game {
       }
     }
     this.updateStatus();
+    this.updateCaptured();
   }
 
   symbol(piece) {
@@ -260,11 +265,18 @@ class Game {
     return symbols[piece.type][piece.color];
   }
 
+  pieceValue(type) {
+    const values = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+    return values[type] || 0;
+  }
+
   clickCell(e) {
     const x = parseInt(e.currentTarget.dataset.x);
     const y = parseInt(e.currentTarget.dataset.y);
     if (this.selected) {
-      if (this.board.movePiece(this.selected[0], this.selected[1], x, y)) {
+      const captured = this.board.movePiece(this.selected[0], this.selected[1], x, y);
+      if (captured !== false) {
+        if (captured) this.captured[this.turn].push(captured);
         this.turn = this.turn === 'w' ? 'b' : 'w';
       }
       this.selected = null;
@@ -290,6 +302,15 @@ class Game {
 
   updateStatus() {
     document.getElementById('status').textContent = this.turn === 'w' ? "White's move" : "Black's move";
+  }
+
+  updateCaptured() {
+    ['w','b'].forEach(color => {
+      const el = document.getElementById(color === 'w' ? 'white-captured' : 'black-captured');
+      el.textContent = this.captured[color].map(p => this.symbol(p)).join(' ');
+      const score = this.captured[color].reduce((s,p)=>s+this.pieceValue(p.type),0);
+      document.getElementById(color === 'w' ? 'white-score' : 'black-score').textContent = score;
+    });
   }
 }
 
